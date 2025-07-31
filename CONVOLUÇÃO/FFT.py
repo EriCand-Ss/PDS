@@ -120,3 +120,22 @@ def convolucao(x1,x2):
 
     return convolucao
     
+def overlap(M, sinal_longo, x2):
+    #determina o tamanho de cada secao do sinal longo
+    Tamanho_dos_blocos = M 
+
+    #tamanho do sinal resultante da convolucao
+    Tamanho_da_convolucao = len(sinal_longo) + len(x2) - 1
+    #determina quantas secoes cabem no tamanho da convolucao estipulada, ou seja, quantos passos serao realizados
+    qtd_de_passos = mt.ceil(len(sinal_longo)/Tamanho_dos_blocos)
+    #vetor overlap do tamanho resultante da convolucao
+    overlap = np.zeros(Tamanho_da_convolucao, dtype = complex)
+
+    for i in range(qtd_de_passos):
+        indice = i*Tamanho_dos_blocos
+        #calculo de convolucao  do sinal longo truncado em M com o sinal x2
+        x1_conv_x2 = convolucao(sinal_longo[indice:indice+Tamanho_dos_blocos],x2)
+        #preencher o vetor overlap
+        overlap[indice:indice + len(x1_conv_x2)] += x1_conv_x2 
+    
+    return overlap
