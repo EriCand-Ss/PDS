@@ -13,7 +13,7 @@ FRAMES = int(SAMPLERATE * DURATION)
 # ==== APP E JANELA ====
 app = QtWidgets.QApplication(sys.argv)
 win = pg.GraphicsLayoutWidget(title="Visualizador de Áudio em Tempo Real")
-win.resize(1000, 600)
+win.resize(2000, 1200)
 
 # ==== PLOT TEMPO ====
 plot_time = win.addPlot(title="Sinal no Tempo")
@@ -33,14 +33,28 @@ plot_freq.setLabel('bottom', 'Frequência', units='Hz')
 
 win.show()
 
-# ==== STREAM DE ÁUDIO ====
-stream = sd.InputStream(samplerate=SAMPLERATE, channels=1, dtype='float32', blocksize=FRAMES)
+# ==== VARIÁVEL PARA ÁUDIO ATUAL ====
+last_audio = np.zeros(FRAMES, dtype='float32')
+
+# ==== CALLBACK DUPLEX ====
+def audio_callback(indata, outdata, frames, time, status):
+    global last_audio
+    if status:
+        print(status)
+    last_audio = indata[:, 0].copy()  # salva para plotar
+    outdata[:] = indata  # manda o áudio para saída (monitoramento)
+
+# ==== STREAM DUPLEX ====
+stream = sd.Stream(samplerate=SAMPLERATE,
+                   blocksize=FRAMES,
+                   channels=1,
+                   dtype='float32',
+                   callback=audio_callback)
 stream.start()
 
 # ==== FUNÇÃO DE ATUALIZAÇÃO ====
 def update():
-    audio, _ = stream.read(FRAMES)
-    audio = audio.flatten()
+    audio = last_audio
 
     # Atualiza forma de onda no tempo
     curve_time.setData(audio)
@@ -50,7 +64,7 @@ def update():
     X = FFT.fft_completa(windowed)
 
     freqs = FFT.frequencia(SAMPLERATE,X)
-    # threshold = 5 # ajuste conforme necessário (teste!)
+
     magnitude = np.abs(X[0:len(X)//2])
 
     curve_freq.setData(freqs, magnitude)
@@ -63,3 +77,4 @@ timer.start(int(DURATION * 1000))  # 50 ms
 # ==== EXECUTA APLICAÇÃO ====
 if __name__ == '__main__':
     QtWidgets.QApplication.instance().exec_()
+
