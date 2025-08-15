@@ -10,8 +10,12 @@ def Wn_inverso(N):
     wn = np.exp(1j*2*np.pi/N)
     return wn
 
-def reordenar (y):
-    zero_padding = 2**mt.ceil(np.log2(len(y))) - len(y)
+def reordenar (y, N = None):
+
+    aux = 2**mt.ceil(np.log2(len(y)))
+    zero_padding = aux - len(y) # quantidade de zeros que deve ser acrescentado para y ficar do mesmo tamanho que aux
+    if (N != None):
+        zero_padding = zero_padding + N - aux # quantidade de zeros que deve ser acrescentado para ficar do tamanho que o usuario quiser
     y = np.append(y,np.zeros(zero_padding))
     y_reordenado = []
 
@@ -95,8 +99,8 @@ def fft_inversa(y):
         # print(k,"A= ", Ak[k],"B = ", Bk[k], f"X({k}) = ", X[k], f"X({k+N//2}) = ", X[k+N//2])
     return X
 
-def fft_completa(y):
-    y_reordenado = reordenar(y)
+def fft_completa(y, N = None):
+    y_reordenado = reordenar(y, N)
     FFT = functionFFT(y_reordenado)
     return FFT
 
